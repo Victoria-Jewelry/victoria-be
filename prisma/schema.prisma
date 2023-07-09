@@ -1,0 +1,190 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Role{
+  ID String @id @default(uuid())
+  Name String  @db.VarChar(10)
+  Users User[]
+
+  @@map("roles")
+}
+
+model User {
+  ID         String      @id @default(uuid())
+  Email      String      @unique @db.VarChar(100)
+  Username   String      @unique @db.VarChar(100)
+  Password   String      @db.VarChar(100)
+  RoleId     String
+  Role       Role        @relation(fields: [RoleId], references: [ID])
+  UserDetail UserDetail?
+  Addresses Address[]
+  Transactions Transaction[]
+
+  @@map("users")
+}
+
+model UserDetail {
+  ID           String  @id @default(uuid())
+  Name         String  @db.VarChar(100)
+  Phone        String  @db.VarChar(15)
+  ProfilePhoto String  @db.VarChar(255)
+  UserID       String @unique
+  User         User   @relation(fields: [UserID], references: [ID])
+
+  @@map("user_details")
+}
+
+model Address{
+  ID String @id @default(uuid())
+  Recipient String @db.VarChar(100)
+  Phone String @db.VarChar(15)
+  CityId Int 
+  CityName String @db.VarChar(100)
+  ProvinceId Int
+  ProvinceName String @db.VarChar(100)
+  Address String @db.VarChar(255)
+  Note String @db.VarChar(255)
+  Mark String @db.VarChar(10)
+  IsPrimary Boolean @default(false)
+  UserId String
+  User User @relation(fields: [UserId], references: [ID])
+  Transactions Transaction[]
+
+
+  @@map("addresses")
+}
+
+model VoucherType{
+  ID String @id @default(uuid())
+  Type String @db.VarChar(100)
+  PhotoUrl String @db.VarChar(255)
+  Vouchers Voucher[]
+
+  @@map("voucher_types")
+}
+
+model Voucher{
+  ID String @id @default(uuid())
+  StartDate DateTime @default(now()) @db.DateTime()
+  EndDate DateTime @db.DateTime()
+  MinimumPurchase Float?
+  MaximumDiscount Float?
+  DiscountPercent Float @default(100.00)
+  ClaimedUserCount Int
+  MaxClaimLimit Int 
+  VoucherTypeId String
+  VoucherType VoucherType @relation(fields: [VoucherTypeId], references: [ID])
+  Transactions Transaction[]
+
+  @@map("vouchers")
+}
+
+model Information{
+  ID String @id @default(uuid())
+  Title String @db.VarChar(65)
+  Status String @db.VarChar(10)
+  PhotoContent String @db.VarChar(255)
+  Content String @db.LongText
+  ViewCount Int
+  BookmarkCount Int
+
+  @@map("informations")
+}
+
+model ProductCategory{
+  ID String @id @default(uuid())
+  Category String @db.VarChar(100)
+  Products Product[]
+
+  @@map("product_categories")
+}
+
+model Product{
+  ID String @id @default(uuid())
+  Name String @db.VarChar(100)
+  Stock Int
+  Status String @db.VarChar(10)
+  Price Float
+  Ratting Float
+  Description String @db.LongText
+  ProductCategoryId String
+  ProductCategory ProductCategory @relation(fields: [ProductCategoryId], references: [ID])
+  ProductImages ProductImage[]
+  TransactionDetails TransactionDetail[]
+
+  @@map("products")
+}
+
+model ProductImage{
+  ID String @id @default(uuid())
+  ProductImage String @db.VarChar(255)
+  ProductId String
+  Product Product @relation(fields: [ProductId], references: [ID])
+
+  @@map("product_images")
+}
+
+model Transaction{
+  ID String @id @default(uuid())
+  StatusTransaction String @db.VarChar(100)
+  ReceiptNumber String @db.VarChar(100)
+  TransactionId String @db.VarChar(100)
+  OrderId String @db.VarChar(100)
+  TotalProductPrice Float
+  TotalShippingPrice Float
+  PaymentMethod String @db.VarChar(100)
+  PaymentStatus String @db.VarChar(100)
+  ExpeditionName String @db.VarChar(100)
+  ExpeditionStatus String @db.VarChar(100)
+  CancellationReason String? @db.LongText
+  ExpeditionRating Float?
+  Discount Float?
+  TotalPrice Float
+  UserId String
+  User User @relation(fields: [UserId], references: [ID])
+  VoucherId String
+  Voucher Voucher @relation(fields: [VoucherId], references: [ID])
+  AddressId String
+  Address Address @relation(fields: [AddressId], references: [ID])
+  TransactionDetails TransactionDetail[]
+
+  @@map("transactions")
+}
+
+model TransactionDetail{
+  ID String @id @default(uuid())
+  Qty Int
+  SubTotalPrice Float
+  TransactionId String 
+  Transaction Transaction @relation(fields: [TransactionId], references: [ID])
+  ProductId String
+  Product Product @relation(fields: [ProductId], references: [ID])
+  RatingProductId String @unique
+  RatingProduct RatingProduct @relation(fields: [RatingProductId], references: [ID])
+
+  @@map("transaction_details")
+}
+
+model RatingProduct{
+  ID String @id @default(uuid())
+  Rating Float
+  Comment String @db.LongText
+  CommentAdmin String @db.LongText
+  Photo String @db.VarChar(255)
+  Video String @db.VarChar(255)
+  TransactionDetail TransactionDetail?
+
+  @@map("rating_products")
+}
+
+
+
